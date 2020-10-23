@@ -1,0 +1,51 @@
+# v3 syntax
+version: "3"
+
+# Named volumes
+volumes:
+  # MySQL Data
+  nges-mysql-data:
+    driver: local
+
+services:
+  # MySQL (5.7)
+  mysql:
+    image: mysql:5.7
+    container_name: nges-mysql
+    volumes:
+      - nges-mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=test
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+  # PHP (with Nginx)
+  app:
+    image: ambientum/php:7.4-nginx
+    container_name: nges-app
+    depends_on:
+      - mysql
+    volumes:
+      - .:/var/www/app
+    ports:
+      - "80:8080"
+    links:
+      - mysql
+  # PHPMYADMIN
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: nges-phpmyadmin
+    depends_on:
+      - mysql
+    links:
+      - mysql
+    ports:
+      - "81:80"
+    environment:
+      - PMA_HOST=mysql
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - UPLOAD_LIMIT=8192K
